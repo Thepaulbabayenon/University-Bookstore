@@ -1,0 +1,48 @@
+import { NextResponse } from "next/server";
+
+import prisma from "@/app/libs/prismadb";
+import getCurrentUser from "@/app/actions/getCurrentUser";
+
+export async function POST(
+  request: Request, 
+) {
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser) {
+    return NextResponse.error();
+  }
+
+  const body = await request.json();
+  const { 
+    title,
+    description,
+    imageSrc,
+    category,
+    volume,
+    schoolItem,
+    chapter,
+    price,
+   } = body;
+
+  Object.keys(body).forEach((value: any) => {
+    if (!body[value]) {
+      NextResponse.error();
+    }
+  });
+
+  const listing = await prisma.listing.create({
+    data: {
+      title,
+      description,
+      imageSrc,
+      category,
+      volume: parseInt(volume, 10),
+      schoolItem: parseInt(schoolItem, 10),
+      chapter: parseInt(chapter, 10),
+      price: parseInt(price, 10),
+      userId: currentUser.id
+    }
+  });
+
+  return NextResponse.json(listing);
+}
